@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Валентинка</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background-color: #fff0f5;
+            font-family: 'Arial', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .heart {
+            position: absolute;
+            color: #ff4d6d;
+            font-size: 24px;
+            animation: fall linear infinite;
+            user-select: none;
+            z-index: 1;
+        }
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0.5; }
+        }
+
+        #envelopeScreen {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(135deg, #ff9a9e, #fecfef, #ff9a9e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            cursor: pointer;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            width: 280px;
+            height: 220px;
+        }
+
+        .letter {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            width: 240px;
+            height: 200px;
+            background: white;
+            border-radius: 8px;
+            z-index: 1;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 70px;
+            transition: transform 0.9s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        .envelope {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 280px;
+            height: 160px;
+            background: #ffb3c6;
+            border-radius: 10px;
+            z-index: 2;
+            box-shadow: 0 10px 30px rgba(214, 51, 108, 0.4);
+        }
+
+        .envelope::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-bottom: 90px solid #ff8fab;
+            border-radius: 0 0 10px 10px;
+            z-index: 3;
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 140px solid transparent;
+            border-right: 140px solid transparent;
+            border-top: 80px solid #ff8fab;
+            border-radius: 10px 10px 0 0;
+            z-index: 4;
+            transform-origin: top;
+            transition: transform 0.6s ease;
+        }
+
+        .envelope-wrapper.open .letter {
+            transform: translateY(-150px);
+            z-index: 5;
+        }
+
+        .envelope-wrapper.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 0;
+        }
+
+        .hint {
+            position: absolute;
+            bottom: 40px;
+            color: #d6336c;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        .menu {
+            display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            z-index: 10;
+            position: relative;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            border-radius: 30px;
+            border: 2px solid #ffb3c6;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+        }
+
+        .menu.active { display: grid; }
+
+        .menu-item {
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2);
+            border: 2px solid #ffb3c6;
+            color: #d6336c;
+        }
+
+        .menu-item:hover {
+            transform: scale(1.1);
+            background: #ffe0e9;
+            box-shadow: 0 10px 25px rgba(255, 105, 180, 0.4);
+        }
+
+        .screen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(255, 240, 245, 0.95);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .screen.active { display: flex; }
+
+        .screen .card {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.4);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+            border: 3px solid #ffb3c6;
+            position: relative;
+        }
+
+        .screen .card img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin-bottom: 15px;
+            border: 3px solid #ffb3c6;
+        }
+
+        .screen .card p {
+            font-size: 22px;
+            font-weight: bold;
+            color: #d6336c;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .screen .card button {
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            background-color: #ff4d6d;
+            color: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+
+        .screen .card button:hover {
+            background-color: #e63950;
+            transform: scale(1.05);
+        }
+
+        #memeScreen {
+            background: linear-gradient(135deg, #2b0000, #4a0000, #1a0000);
+        }
+
+        #memeScreen .meme-card {
+            background: rgba(40, 0, 0, 0.9);
+            border: 3px solid #ff6600;
+            border-radius: 20px;
+            padding: 30px 40px;
+            text-align: center;
+            box-shadow: 0 0 40px rgba(255, 102, 0, 0.5);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        #memeScreen img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 15px;
+            border: 3px solid #ff6600;
+            margin-bottom: 15px;
+        }
+
+        #memeScreen p {
+            font-size: 28px;
+            font-weight: 900;
+            color: #ff6600;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(255, 102, 0, 0.8);
+        }
+
+        #memeScreen button {
+            background: linear-gradient(45deg, #ff6600, #ff3300);
+            color: white;
+            padding: 14px 40px;
+            font-size: 20px;
+            text-transform: uppercase;
+            border: 2px solid #ffaa00;
+            box-shadow: 0 0 20px rgba(255, 102, 0, 0.6);
+        }
+
+        #memeScreen button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(255, 102, 0, 0.9);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #ff4d6d;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="envelopeScreen" onclick="openEnvelope()">
+        <div class="envelope-wrapper" id="envelopeWrapper">
+            <div class="letter">❤️</div>
+            <div class="envelope"></div>
+            <div class="envelope-flap"></div>
+        </div>
+        <div class="hint">Нажми на конверт 💌</div>
+    </div>
+
+    <div class="menu" id="mainMenu">
+        <div class="menu-item" onclick="openScreen('letterScreen')">✉️</div>
+        <div class="menu-item" onclick="openScreen('valentineScreen')">❤️</div>
+        <div class="menu-item" onclick="openScreen('photoScreen')">📷</div>
+        <div class="menu-item" onclick="openScreen('musicScreen')">🎵</div>
+    </div>
+
+    <div class="screen" id="letterScreen">
+        <button class="close-btn" onclick="closeScreen('letterScreen')">✕</button>
+        <div class="card">
+            <p>Сижу пишу сайт и жду нашей встречи</p>
+            <button onclick="closeScreen('letterScreen')">Закрыть</button>
+        </div>
+    </div>
+
+    <div class="screen" id="valentineScreen">
+        <button class="close-btn" onclick="closeScreen('valentineScreen')">✕</button>
+        <div class="card">
+            <img src="https://i.imgur.com/6Q1Y8Z6.png" alt="Котик">
+            <p>Ты будешь моей валентинкой?</p>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button onclick="openScreen('memeScreen'); closeScreen('valentineScreen');">ОК</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="screen" id="memeScreen">
+        <button class="close-btn" onclick="closeScreen('memeScreen')">✕</button>
+        <div class="meme-card">
+            <img src="https://i.imgur.com/8Q1Y8Z6.png" alt="Злой котик">
+            <p>ТЫ ОФИГЕЛА?</p>
+            <button onclick="closeScreen('memeScreen')">ПЕРЕДУМАТЬ</button>
+        </div>
+    </div>
+
+    <div class="screen" id="photoScreen">
+        <button class="close-btn" onclick="closeScreen('photoScreen')">✕</button>
+        <div class="card">
+            <img src="photo.jpg" alt="Наше фото" style="width: 100%; height: auto; max-height: 400px; object-fit: contain;">
+            <p>Мы ❤️</p>
+        </div>
+    </div>
+
+    <div class="screen" id="musicScreen">
+        <button class="close-btn" onclick="closeScreen('musicScreen')">✕</button>
+        <div class="card">
+            <audio controls autoplay>
+                <source src="music.mp3" type="audio/mpeg">
+                Ваш браузер не поддерживает аудио.
+            </audio>
+            <p>Автостопом по фазе сна — Аня Долгова 🎶</p>
+        </div>
+    </div>
+
+    <script>
+        function openEnvelope() {
+            const wrapper = document.getElementById('envelopeWrapper');
+            wrapper.classList.add('open');
+            
+            setTimeout(() => {
+                document.getElementById('envelopeScreen').style.opacity = '0';
+                document.getElementById('envelopeScreen').style.visibility = 'hidden';
+                document.getElementById('mainMenu').classList.add('active');
+            }, 1200);
+        }
+
+        function openScreen(id) {
+            document.getElementById(id).classList.add('active');
+        }
+
+        function closeScreen(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('heart');
+            heart.innerHTML = '❤️';
+            
+            const size = Math.random() * 20 + 10;
+            heart.style.fontSize = size + 'px';
+            heart.style.left = Math.random() * 100 + 'vw';
+            
+            const duration = Math.random() * 3 + 2;
+            heart.style.animationDuration = duration + 's';
+            heart.style.animationDelay = Math.random() * 2 + 's';
+
+            document.body.appendChild(heart);
+
+            setTimeout(() => {
+                heart.remove();
+            }, (duration + 2) * 1000);
+        }
+
+        setInterval(createHeart, 300);
+    </script>
+</body>
+</html>
